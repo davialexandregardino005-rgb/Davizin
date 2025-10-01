@@ -1,6 +1,6 @@
--- CuberRaptor Hub com Key (Verificação) - versão menor
+-- CuberRaptor Hub com Key (Verificação) + Teleport Tool na aba Tools
 -- Key: Pqnvue
--- Colar no executor ou em LocalScript
+-- Cole no executor ou em um LocalScript
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -415,6 +415,129 @@ local function createHub()
 		end
 		wait(2)
 		ytButton.Text = "Abrir Canal no YouTube"
+	end)
+
+	-- -------------------------
+	-- Tools: botão que dá um Tool de Teleport
+	-- -------------------------
+	local toolsFrame = contentFrames["Tools"].frame
+
+	-- Texto explicativo
+	new("TextLabel", {
+		Name = "ToolInfo",
+		Parent = toolsFrame,
+		Position = UDim2.new(0, 8, 0, 72),
+		Size = UDim2.new(1, -16, 0, 36),
+		Text = "Clique no botão para receber a TeleportTool. Equipe-a e clique em uma parte para teleportar.",
+		Font = Enum.Font.Gotham,
+		TextSize = 14,
+		TextColor3 = Color3.fromRGB(200,200,200),
+		BackgroundTransparency = 1,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Center,
+	})
+
+	local giveToolBtn = new("TextButton", {
+		Name = "GiveTeleportTool",
+		Parent = toolsFrame,
+		Size = UDim2.new(0, 260, 0, 44),
+		Position = UDim2.new(0, 8, 0, 116),
+		Text = "Receber TeleportTool",
+		Font = Enum.Font.GothamBold,
+		TextSize = 16,
+		TextColor3 = Color3.fromRGB(255,255,255),
+		BackgroundColor3 = Color3.fromRGB(0, 140, 200),
+		AutoButtonColor = true,
+		ZIndex = 5,
+	})
+	new("UICorner", {Parent = giveToolBtn, CornerRadius = UDim.new(0, 8)})
+
+	-- Função que cria o Tool e adiciona comportamento local
+	local function giveTeleportToolToPlayer()
+		-- Verifica se o jogador ainda tem personagem
+		if not player or not player.Character then return end
+
+		-- Remove tool antiga com mesmo nome no Backpack / Character
+		local existing = player.Backpack:FindFirstChild("TeleportTool") or player.Character:FindFirstChild("TeleportTool")
+		if existing then
+			existing:Destroy()
+		end
+
+		-- Cria o Tool
+		local tool = Instance.new("Tool")
+		tool.Name = "TeleportTool"
+		tool.CanBeDropped = true
+		tool.RequiresHandle = false -- não precisa de handle fisico
+		tool.Parent = player.Backpack
+
+		-- Criar um Gui pequeno dentro do Tool (opcional) com instruções
+		local toolGui = Instance.new("BillboardGui")
+		toolGui.Name = "InstructionGUI"
+		toolGui.AlwaysOnTop = true
+		toolGui.Size = UDim2.new(0, 200, 0, 50)
+		toolGui.Enabled = false
+		toolGui.Parent = tool
+
+		-- Local script behavior (executado no cliente já que este script é local)
+		-- Usaremos Mouse do jogador para detectar posição ao ativar o Tool
+		tool.Equipped:Connect(function(mouse)
+			-- Habilita instrução (se desejar)
+			toolGui.Enabled = true
+
+			-- Estado de cooldown para evitar teleports repetidos muito rápidos
+			local canTeleport = true
+			local cooldown = 0.5 -- segundos
+
+			-- Activated é chamado quando o jogador clica enquanto tool está equipada
+			tool.Activated:Connect(function()
+				-- segurança: garantir mouse e personagem
+				if not mouse or not player.Character then return end
+				if not canTeleport then return end
+
+				-- Posição onde o jogador clicou (mouse.Hit)
+				local targetCFrame = mouse.Hit
+				if not targetCFrame then return end
+
+				-- Se não existe alvo (nil) não teleportar
+				local targetPos = targetCFrame.p
+				if not targetPos then return end
+
+				-- Ajuste vertical para evitar ficar preso no chão/parit
+				local teleportPos = targetPos + Vector3.new(0, 3, 0)
+
+				-- Teleport (cliente altera a posição do personagem)
+				local char = player.Character
+				if char and char:FindFirstChild("HumanoidRootPart") then
+					-- usar pcall para evitar erros
+					pcall(function()
+						char.HumanoidRootPart.CFrame = CFrame.new(teleportPos)
+					end)
+				end
+
+				-- aplicar cooldown
+				canTeleport = false
+				delay(cooldown, function()
+					canTeleport = true
+				end)
+			end)
+		end)
+
+		tool.Unequipped:Connect(function()
+			-- desabilita instrução ao desequipar
+			toolGui.Enabled = false
+		end)
+	end
+
+	giveToolBtn.MouseButton1Click:Connect(function()
+		-- dar feedback visual
+		giveToolBtn.Text = "Dando TeleportTool..."
+		pcall(function()
+			giveTeleportToolToPlayer()
+		end)
+		wait(0.8)
+		giveToolBtn.Text = "TeleportTool entregue ✓"
+		wait(1.5)
+		giveToolBtn.Text = "Receber TeleportTool"
 	end)
 
 	-- -------------------------
