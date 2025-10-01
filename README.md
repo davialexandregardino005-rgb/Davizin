@@ -1,4 +1,4 @@
-# Davizin
+
 -- Painel Avançado - GUI Arrastável
 -- Script para Executor
 
