@@ -1,5 +1,5 @@
--- CyberRaptor GUI (versão adaptada para KRNL)
--- Basta executar no seu executor (KRNL) que a GUI vai aparecer.
+-- CyberRaptor GUI (com funções reais) - KRNL
+-- Basta executar no KRNL
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -8,7 +8,7 @@ local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 
--- Helper: HSV -> RGB
+-- Helper HSV -> RGB
 local function HSV(h, s, v)
     local r, g, b
     local i = math.floor(h * 6)
@@ -26,48 +26,21 @@ local function HSV(h, s, v)
     return Color3.new(r, g, b)
 end
 
--- ScreenGui
+-- GUI principal
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "CyberRaptor"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = game:GetService("CoreGui") -- <- no executor, use CoreGui
+screenGui.Parent = game:GetService("CoreGui")
 
--- Main window
 local main = Instance.new("Frame")
 main.Name = "MainWindow"
 main.Size = UDim2.new(0, 640, 0, 640)
-main.Position = UDim2.new(0.5, -320, 0.5, -320)
+main.Position = UDim2.new(0.5, -320, 0.5, -320) -- centro da tela
 main.AnchorPoint = Vector2.new(0.5, 0.5)
 main.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 main.BorderSizePixel = 0
 main.ClipsDescendants = true
 main.Parent = screenGui
-
--- Cantos arredondados
-local uicorner = Instance.new("UICorner")
-uicorner.CornerRadius = UDim.new(0, 12)
-uicorner.Parent = main
-
--- Sombra
-local shadow = Instance.new("ImageLabel")
-shadow.Name = "Shadow"
-shadow.Size = UDim2.new(1, 30, 1, 30)
-shadow.Position = UDim2.new(0, -15, 0, -15)
-shadow.BackgroundTransparency = 1
-shadow.Image = "rbxassetid://5052993270"
-shadow.ImageTransparency = 0.6
-shadow.ScaleType = Enum.ScaleType.Slice
-shadow.SliceCenter = Rect.new(20, 20, 200, 200)
-shadow.Parent = main
-shadow.ZIndex = 0
-
--- Conteúdo
-local content = Instance.new("Frame")
-content.Size = UDim2.new(1, -24, 1, -64)
-content.Position = UDim2.new(0, 12, 0, 52)
-content.BackgroundTransparency = 1
-content.Parent = main
-content.ZIndex = 2
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
 
 -- Barra de título
 local titleBar = Instance.new("Frame")
@@ -79,29 +52,17 @@ local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(1, -120, 1, 0)
 titleLabel.Position = UDim2.new(0, 12, 0, 0)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "CyberRaptor"
+titleLabel.Text = "🌌 CyberRaptor GUI"
 titleLabel.Font = Enum.Font.GothamSemibold
 titleLabel.TextSize = 22
 titleLabel.TextColor3 = Color3.fromRGB(235, 235, 235)
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 titleLabel.Parent = titleBar
 
--- Botão minimizar
-local toggleBtn = Instance.new("TextButton")
-toggleBtn.Size = UDim2.new(0, 44, 0, 28)
-toggleBtn.Position = UDim2.new(1, -56, 0, 10)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-toggleBtn.Text = "—"
-toggleBtn.Font = Enum.Font.GothamBold
-toggleBtn.TextSize = 20
-toggleBtn.TextColor3 = Color3.fromRGB(220,220,220)
-Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 6)
-toggleBtn.Parent = titleBar
-
 -- Botão fechar
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 44, 0, 28)
-closeBtn.Position = UDim2.new(1, -100, 0, 10)
+closeBtn.Position = UDim2.new(1, -56, 0, 10)
 closeBtn.BackgroundColor3 = Color3.fromRGB(220, 70, 70)
 closeBtn.Text = "X"
 closeBtn.Font = Enum.Font.GothamBold
@@ -109,8 +70,9 @@ closeBtn.TextSize = 18
 closeBtn.TextColor3 = Color3.fromRGB(240,240,240)
 Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
 closeBtn.Parent = titleBar
+closeBtn.MouseButton1Click:Connect(function() screenGui:Destroy() end)
 
--- Arrastar GUI
+-- Drag
 local dragging, dragStart, startPos
 titleBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -122,7 +84,6 @@ titleBar.InputBegan:Connect(function(input)
         end)
     end
 end)
-
 UserInputService.InputChanged:Connect(function(input)
     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
         local delta = input.Position - dragStart
@@ -130,28 +91,9 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- Funções de minimizar/fechar
-local minimized, originalSize = false, main.Size
-local function minimize()
-    minimized = true
-    TweenService:Create(main, TweenInfo.new(0.25), {Size = UDim2.new(0, 220, 0, 40)}):Play()
-    content.Visible = false
-end
-local function restore()
-    minimized = false
-    TweenService:Create(main, TweenInfo.new(0.25), {Size = originalSize}):Play()
-    content.Visible = true
-end
-toggleBtn.MouseButton1Click:Connect(function()
-    if minimized then restore() else minimize() end
-end)
-closeBtn.MouseButton1Click:Connect(function()
-    screenGui:Destroy()
-end)
-
 -- Tabs
 local tabsFrame = Instance.new("Frame")
-tabsFrame.Size = UDim2.new(0, 140, 1, -80)
+tabsFrame.Size = UDim2.new(0, 140, 1, -60)
 tabsFrame.Position = UDim2.new(0, 12, 0, 52)
 tabsFrame.BackgroundTransparency = 1
 tabsFrame.Parent = main
@@ -160,11 +102,13 @@ UIList.Padding = UDim.new(0, 8)
 UIList.Parent = tabsFrame
 
 local pages, tabButtons = {}, {}
-for i=1,5 do
+local tabNames = {"Teleport", "Speed", "Fly", "ESP", "Utils"}
+
+for i,name in pairs(tabNames) do
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, 0, 0, 40)
     btn.BackgroundColor3 = Color3.fromRGB(28,28,28)
-    btn.Text = "Tab "..i
+    btn.Text = name
     btn.Font = Enum.Font.Gotham
     btn.TextSize = 16
     btn.TextColor3 = Color3.fromRGB(220,220,220)
@@ -177,7 +121,7 @@ for i=1,5 do
     page.BackgroundTransparency = 1
     page.Parent = main
     page.Visible = (i==1)
-
+    
     pages[i], tabButtons[i] = page, btn
 end
 
@@ -187,44 +131,151 @@ local function showPage(index)
         b.BackgroundColor3 = (i==index) and Color3.fromRGB(60,60,60) or Color3.fromRGB(28,28,28)
     end
 end
-for i,btn in pairs(tabButtons) do
-    btn.MouseButton1Click:Connect(function() showPage(i) end)
-end
+for i,btn in pairs(tabButtons) do btn.MouseButton1Click:Connect(function() showPage(i) end) end
 
--- Exemplo de botão dentro das páginas
-for i,page in pairs(pages) do
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, 0, 0, 28)
-    title.Text = "Page "..i
-    title.Font = Enum.Font.GothamSemibold
-    title.TextSize = 18
-    title.TextColor3 = Color3.fromRGB(230,230,230)
-    title.BackgroundTransparency = 1
-    title.Parent = page
-    
-    local toggle = Instance.new("TextButton")
-    toggle.Size = UDim2.new(0, 180, 0, 36)
-    toggle.Position = UDim2.new(0, 0, 0, 40)
-    toggle.BackgroundColor3 = Color3.fromRGB(45,45,45)
-    toggle.Text = "Toggle Feature"
-    toggle.Font = Enum.Font.Gotham
-    toggle.TextSize = 16
-    toggle.TextColor3 = Color3.fromRGB(230,230,230)
-    Instance.new("UICorner", toggle).CornerRadius = UDim.new(0, 8)
-    toggle.Parent = page
-    
-    local state = false
-    toggle.MouseButton1Click:Connect(function()
-        state = not state
-        toggle.BackgroundColor3 = state and Color3.fromRGB(70,140,70) or Color3.fromRGB(45,45,45)
-        print("Page", i, "feature state:", state)
+-- ============ FUNÇÕES ============
+
+-- Teleport Tab
+do
+    local page = pages[1]
+    local tpBtn = Instance.new("TextButton", page)
+    tpBtn.Size = UDim2.new(0, 200, 0, 40)
+    tpBtn.Position = UDim2.new(0, 10, 0, 10)
+    tpBtn.Text = "Teleport to Random Player"
+    tpBtn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+    tpBtn.TextColor3 = Color3.fromRGB(230,230,230)
+    Instance.new("UICorner", tpBtn).CornerRadius = UDim.new(0, 6)
+
+    tpBtn.MouseButton1Click:Connect(function()
+        local players = Players:GetPlayers()
+        if #players > 1 then
+            local target = players[math.random(1,#players)]
+            if target ~= player and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                player.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(0,3,0)
+            end
+        end
     end)
 end
 
--- Animação de aparecer
+-- Speed Tab
+do
+    local page = pages[2]
+    local speed = 16
+    local toggle = Instance.new("TextButton", page)
+    toggle.Size = UDim2.new(0, 200, 0, 40)
+    toggle.Position = UDim2.new(0, 10, 0, 10)
+    toggle.Text = "Toggle Speed Boost"
+    toggle.BackgroundColor3 = Color3.fromRGB(45,45,45)
+    toggle.TextColor3 = Color3.fromRGB(230,230,230)
+    Instance.new("UICorner", toggle).CornerRadius = UDim.new(0, 6)
+
+    local active = false
+    toggle.MouseButton1Click:Connect(function()
+        active = not active
+        speed = active and 60 or 16
+        player.Character.Humanoid.WalkSpeed = speed
+        toggle.BackgroundColor3 = active and Color3.fromRGB(70,140,70) or Color3.fromRGB(45,45,45)
+    end)
+end
+
+-- Fly Tab
+do
+    local page = pages[3]
+    local btn = Instance.new("TextButton", page)
+    btn.Size = UDim2.new(0, 200, 0, 40)
+    btn.Position = UDim2.new(0, 10, 0, 10)
+    btn.Text = "Toggle Fly"
+    btn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+    btn.TextColor3 = Color3.fromRGB(230,230,230)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+
+    local flying = false
+    local bodyGyro, bodyVel
+    btn.MouseButton1Click:Connect(function()
+        flying = not flying
+        if flying then
+            local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+            bodyGyro = Instance.new("BodyGyro", hrp)
+            bodyVel = Instance.new("BodyVelocity", hrp)
+            bodyGyro.P = 9e4 bodyGyro.MaxTorque = Vector3.new(9e9,9e9,9e9)
+            bodyVel.Velocity = Vector3.new(0,0,0)
+            bodyVel.MaxForce = Vector3.new(9e9,9e9,9e9)
+            RunService.RenderStepped:Connect(function()
+                if flying then
+                    bodyGyro.CFrame = workspace.CurrentCamera.CFrame
+                    local vel = Vector3.new()
+                    if UserInputService:IsKeyDown(Enum.KeyCode.W) then vel = vel + workspace.CurrentCamera.CFrame.LookVector end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.S) then vel = vel - workspace.CurrentCamera.CFrame.LookVector end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.A) then vel = vel - workspace.CurrentCamera.CFrame.RightVector end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.D) then vel = vel + workspace.CurrentCamera.CFrame.RightVector end
+                    bodyVel.Velocity = vel * 50
+                end
+            end)
+        else
+            if bodyGyro then bodyGyro:Destroy() end
+            if bodyVel then bodyVel:Destroy() end
+        end
+        btn.BackgroundColor3 = flying and Color3.fromRGB(70,140,70) or Color3.fromRGB(45,45,45)
+    end)
+end
+
+-- ESP Tab
+do
+    local page = pages[4]
+    local btn = Instance.new("TextButton", page)
+    btn.Size = UDim2.new(0, 200, 0, 40)
+    btn.Position = UDim2.new(0, 10, 0, 10)
+    btn.Text = "Toggle ESP"
+    btn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+    btn.TextColor3 = Color3.fromRGB(230,230,230)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+
+    local espEnabled = false
+    btn.MouseButton1Click:Connect(function()
+        espEnabled = not espEnabled
+        for _,v in pairs(Players:GetPlayers()) do
+            if v ~= player and v.Character and v.Character:FindFirstChild("Head") then
+                if espEnabled then
+                    local bill = Instance.new("BillboardGui", v.Character.Head)
+                    bill.Name = "ESP"
+                    bill.Size = UDim2.new(0,100,0,50)
+                    bill.AlwaysOnTop = true
+                    local label = Instance.new("TextLabel", bill)
+                    label.Size = UDim2.new(1,0,1,0)
+                    label.Text = v.Name
+                    label.TextColor3 = Color3.fromRGB(255,0,0)
+                    label.BackgroundTransparency = 1
+                else
+                    if v.Character.Head:FindFirstChild("ESP") then
+                        v.Character.Head.ESP:Destroy()
+                    end
+                end
+            end
+        end
+        btn.BackgroundColor3 = espEnabled and Color3.fromRGB(70,140,70) or Color3.fromRGB(45,45,45)
+    end)
+end
+
+-- Utils Tab
+do
+    local page = pages[5]
+    local reBtn = Instance.new("TextButton", page)
+    reBtn.Size = UDim2.new(0, 200, 0, 40)
+    reBtn.Position = UDim2.new(0, 10, 0, 10)
+    reBtn.Text = "Respawn"
+    reBtn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+    reBtn.TextColor3 = Color3.fromRGB(230,230,230)
+    Instance.new("UICorner", reBtn).CornerRadius = UDim.new(0, 6)
+
+    reBtn.MouseButton1Click:Connect(function()
+        player.Character:BreakJoints()
+    end)
+end
+
+-- Animação aparecer
 main.Size = UDim2.new(0, 60, 0, 60)
 main.BackgroundTransparency = 1
-local appearTween = TweenService:Create(main, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = originalSize, BackgroundTransparency = 0})
+local appearTween = TweenService:Create(main, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0,640,0,640), BackgroundTransparency = 0})
 appearTween:Play()
 
 -- Barra arco-íris
