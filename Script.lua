@@ -1,11 +1,11 @@
--- CyberRaptor Hub - GUI Arco-Íris
+-- CyberRaptor Hub - GUI Arco-Íris Realista
 -- Script para Executor
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 
--- Função para criar arco-íris dinâmico
+-- Função arco-íris dinâmica
 local function rainbowColor(speed)
     local t = tick() * speed
     return Color3.fromHSV(t % 1, 1, 1)
@@ -64,6 +64,7 @@ end)
 -- Abas
 local abas = {"Player", "Teleport", "Combat", "Farm", "Visual"}
 local conteudoAbas = {}
+local abaBotoes = {}
 
 for i, nome in ipairs(abas) do
     local btn = Instance.new("TextButton")
@@ -75,6 +76,7 @@ for i, nome in ipairs(abas) do
     btn.Font = Enum.Font.SourceSansBold
     btn.TextSize = 16
     btn.Parent = main
+    abaBotoes[#abaBotoes+1] = btn
     
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -20, 1, -120)
@@ -103,10 +105,10 @@ local function criarBotao(frame, texto, ordem, callback)
     btn.Font = Enum.Font.SourceSansBold
     btn.TextSize = 16
     btn.Parent = frame
-    btn.MouseButton1Click:Connect(callback)
+    return btn
 end
 
--- Exemplo de funções (Aba Player)
+-- Exemplo de botões (Player)
 criarBotao(conteudoAbas["Player"], "Velocidade Turbo", 1, function()
     local hum = player.Character:FindFirstChildOfClass("Humanoid")
     if hum then hum.WalkSpeed = 120 end
@@ -116,13 +118,22 @@ criarBotao(conteudoAbas["Player"], "Super Pulo", 2, function()
     if hum then hum.JumpPower = 200 end
 end)
 
--- ===== Animação Arco-Íris =====
+-- ===== Arco-Íris Animado =====
 RunService.RenderStepped:Connect(function()
     local cor = rainbowColor(0.5)
+
+    -- Moldura
     main.BackgroundColor3 = cor
     title.BackgroundColor3 = cor
     toggleBtn.BackgroundColor3 = cor
-    for _, frame in pairs(conteudoAbas) do
+
+    -- Abas
+    for _,btn in ipairs(abaBotoes) do
+        btn.BackgroundColor3 = cor
+    end
+
+    -- Conteúdo das abas
+    for _,frame in pairs(conteudoAbas) do
         frame.BackgroundColor3 = cor
     end
 end)
